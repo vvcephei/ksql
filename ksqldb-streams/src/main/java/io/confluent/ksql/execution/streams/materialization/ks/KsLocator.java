@@ -183,37 +183,31 @@ public final class KsLocator implements Locator {
    */
   private List<PartitionMetadata>  getMetadataForAllPartitions(
       final Set<Integer> filterPartitions) {
-    // It's important that we consider only the source topics for the subtopology that contains the
-    // state store. Otherwise, we'll be given the wrong partition -> host mappings.
-    // The underlying state store has a number of partitions that is the MAX of the number of
-    // partitions of all source topics of the subtopology.  Since partition X of all source topics
-    // of the particular subtopology will map to the same host, we can collect partition -> host
-    // for these topics to find the locations of each partition of the state store.
-    final Set<String> sourceTopicSuffixes = findSubtopologySourceTopicSuffixes();
     final Map<Integer, HostInfo> activeHostByPartition = new HashMap<>();
     final Map<Integer, Set<HostInfo>> standbyHostsByPartition = new HashMap<>();
-    for (final StreamsMetadata streamsMetadata : kafkaStreams.allMetadataForStore(stateStoreName)) {
-      streamsMetadata.topicPartitions().forEach(
-          tp -> {
-            if (sourceTopicSuffixes.stream().anyMatch(suffix -> tp.topic().endsWith(suffix))) {
-              activeHostByPartition.compute(tp.partition(), (partition, hostInfo) -> {
-                if (hostInfo != null && !streamsMetadata.hostInfo().equals(hostInfo)) {
-                  throw new IllegalStateException("Should only be one active host per partition");
-                }
-                return streamsMetadata.hostInfo();
-              });
-            }
-          });
+    for (final StreamsMetadata metadata : kafkaStreams.allMetadataForStore(stateStoreName)) {
+      {
+        final Set<Integer> partitions =
+                metadata.activeStorePartitions().get(stateStoreName);
+        if (partitions != null) {
+          for (final Integer partition : partitions) {
+            activeHostByPartition.put(partition, metadata.hostInfo());
+          }
+        }
+      }
 
-      streamsMetadata.standbyTopicPartitions().forEach(
-          tp -> {
-            // Ideally, we'd also throw an exception if we found a mis-mapping for the standbys, but
-            // with multiple per partition, we can't easy sanity check.
-            if (sourceTopicSuffixes.stream().anyMatch(suffix -> tp.topic().endsWith(suffix))) {
-              standbyHostsByPartition.computeIfAbsent(tp.partition(), p -> new HashSet<>());
-              standbyHostsByPartition.get(tp.partition()).add(streamsMetadata.hostInfo());
+      {
+        final Set<Integer> partitions = metadata.standbyStorePartitions().get(stateStoreName);
+        if (partitions != null) {
+
+          for (final Integer partition : partitions) {
+            if (!standbyHostsByPartition.containsKey(partition)) {
+              standbyHostsByPartition.put(partition, new HashSet<>());
             }
-          });
+            standbyHostsByPartition.get(partition).add(metadata.hostInfo());
+          }
+        }
+      }
     }
 
     final Set<Integer> partitions = Streams.concat(

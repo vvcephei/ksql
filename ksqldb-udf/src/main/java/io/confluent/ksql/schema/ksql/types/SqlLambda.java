@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @Immutable
 public final class SqlLambda {
 
-  private final List<SqlType> inputTypes;
+  private final ImmutableList<SqlType> inputTypes;
   private final SqlType returnType;
 
   public static SqlLambda of(
