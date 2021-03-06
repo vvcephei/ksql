@@ -95,7 +95,7 @@
     </pluginRepositories>
 
     <properties>
-        <kafka.version>3.0.0-IQ3</kafka.version>
+        <kafka.version>3.0.0-IQ4</kafka.version>
         <apache.directory.server.version>2.0.0-M22</apache.directory.server.version>
         <apache.directory.api.version>1.0.0-M33</apache.directory.api.version>
         <apache.httpcomponents.version>5.0.1</apache.httpcomponents.version>

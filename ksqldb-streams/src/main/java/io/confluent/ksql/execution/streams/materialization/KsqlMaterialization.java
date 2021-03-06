@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.apache.kafka.streams.KafkaStreams;
 
 /**
  * {@link Materialization} implementation responsible for handling HAVING and SELECT clauses.
@@ -79,6 +80,16 @@ class KsqlMaterialization implements Materialization {
     this.schema = requireNonNull(schema, "schema");
     this.transforms = ImmutableList.copyOf(
         Objects.requireNonNull(transforms, "transforms"));
+  }
+
+  @Override
+  public String storeName() {
+    return inner.storeName();
+  }
+
+  @Override
+  public KafkaStreams streamsHack() {
+    return inner.streamsHack();
   }
 
   @Override

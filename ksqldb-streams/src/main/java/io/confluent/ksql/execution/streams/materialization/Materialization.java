@@ -18,8 +18,11 @@ package io.confluent.ksql.execution.streams.materialization;
 import io.confluent.ksql.model.WindowType;
 import io.confluent.ksql.schema.ksql.LogicalSchema;
 import java.util.Optional;
+import org.apache.kafka.streams.KafkaStreams;
 
 public interface Materialization {
+
+  String storeName();
 
   /**
    * @return The schema of the materialization
@@ -45,4 +48,6 @@ public interface Materialization {
    * @return access to the materialized windowed table.
    */
   MaterializedWindowedTable windowed();
+
+  KafkaStreams streamsHack();
 }

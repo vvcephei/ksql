@@ -32,6 +32,7 @@ import io.confluent.ksql.util.KsqlConfig;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
+
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.Topology;

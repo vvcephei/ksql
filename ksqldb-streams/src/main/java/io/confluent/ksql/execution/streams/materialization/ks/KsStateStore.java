@@ -74,4 +74,12 @@ class KsStateStore {
       throw new MaterializationException("State store currently unavailable: " + stateStoreName, e);
     }
   }
+
+  public String storeName() {
+    return stateStoreName;
+  }
+
+  public KafkaStreams streamsHack() {
+    return kafkaStreams;
+  }
 }

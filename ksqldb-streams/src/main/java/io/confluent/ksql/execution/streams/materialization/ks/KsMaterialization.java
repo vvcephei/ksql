@@ -25,6 +25,7 @@ import io.confluent.ksql.model.WindowType;
 import io.confluent.ksql.schema.ksql.LogicalSchema;
 import io.confluent.ksql.serde.WindowInfo;
 import java.util.Optional;
+import org.apache.kafka.streams.KafkaStreams;
 
 /**
  * Kafka Streams impl of {@link Materialization}.
@@ -43,6 +44,16 @@ public final class KsMaterialization implements Materialization {
     this.windowInfo = requireNonNull(windowInfo, "windowInfo");
     this.stateStore = requireNonNull(stateStore, "stateStore");
     this.locator = requireNonNull(locator, "locator");
+  }
+
+  @Override
+  public String storeName() {
+    return stateStore.storeName();
+  }
+
+  @Override
+  public KafkaStreams streamsHack() {
+    return stateStore.streamsHack();
   }
 
   @Override

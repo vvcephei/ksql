@@ -105,6 +105,7 @@ public class RestQueryTranslationTest {
   public static Collection<Object[]> data() {
     return JsonTestLoader.of(TEST_DIR, RqttTestFile.class)
         .load()
+//            .filter(testCase -> testCase.getName().contains("non-windowed - select star and ROWTIME"))
         .map(testCase -> new Object[]{testCase.getName(), testCase})
         .collect(Collectors.toCollection(ArrayList::new));
   }

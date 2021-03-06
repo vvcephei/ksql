@@ -25,6 +25,9 @@ import io.confluent.ksql.util.IteratorUtil;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
+
+import org.apache.kafka.streams.query.InteractiveQueryParameters;
+import org.apache.kafka.streams.query.KeyQuery;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
@@ -47,11 +50,26 @@ class KsMaterializedTable implements MaterializedTable {
       final int partition
   ) {
     try {
-      final ReadOnlyKeyValueStore<GenericKey, ValueAndTimestamp<GenericRow>> store = stateStore
-          .store(QueryableStoreTypes.timestampedKeyValueStore(), partition);
+      final KeyQuery<GenericKey, ValueAndTimestamp<GenericRow>> keyQuery =
+              new KeyQuery<GenericKey, ValueAndTimestamp<GenericRow>>().key(key);
 
-      return Optional.ofNullable(store.get(key))
-          .map(v -> Row.of(stateStore.schema(), key, v.value(), v.timestamp()));
+      final KeyQuery.KeyQueryResult<ValueAndTimestamp<GenericRow>> result =
+              stateStore
+                      .streamsHack()
+                      .query(
+                              new InteractiveQueryParameters<>()
+                                      .storeName(stateStore.storeName())
+                                      .partition(partition)
+                                      .query(keyQuery)
+                      );
+
+      if (result.error().isPresent()) {
+        throw new RuntimeException(result.error().get());
+      } else {
+        return result
+                .results()
+                .map(v -> Row.of(stateStore.schema(), key, v.value(), v.timestamp()));
+      }
     } catch (final Exception e) {
       throw new MaterializationException("Failed to get value from materialized table", e);
     }
